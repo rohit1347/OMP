@@ -8,6 +8,17 @@ UCSD ECE269 - Linear Algebra and Application
 
 Programming Assignment
 
+---
+OMP code for:
+
+i) Recovery when noise is not present.
+
+ii) Recovery when noise is present.
+
+iii) Reconstruction of an image.
+
+---
+
 You can read what OMP does with the following resources:
 
 
