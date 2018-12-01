@@ -78,6 +78,7 @@ for n_sigma=n_sigma_set
                         x_rec=zeros(size(x));
                         disp(sprintf('Noisy run= %d , Spars= %d , M= %d, Sig=%d, Flag=%d',run,support_length,M,n_sigma,sparsity_flag))
                         maxrun=0;
+                        min_rec_flag=0;
                         %             while(max(abs(r)>residue_limit)==1 && maxrun<=100)
                         if sparsity_flag==0     %Sparsity known case
                             while(max(abs(r)>noisy_residue_limit)==1 && nnz(x)>nnz(x_rec_idx)&& maxrun<=100)
@@ -100,7 +101,7 @@ for n_sigma=n_sigma_set
                         else %Sparsity unknown case
                             maxrun=0;
                             max_index_array=[];
-                            while(max(abs(r)>noisy_residue_limit+norm(n))==1&& maxrun<=100)
+                            while(max(abs(r)>norm(n))==1&& maxrun<=100 &&min_run_flag==0)
                                 w=A'*r;
                                 [~,sp_idx]=max(abs(w));         %Taking absolute value of lambda
                                 max_index_array=[max_index_array sp_idx];
@@ -108,7 +109,7 @@ for n_sigma=n_sigma_set
                                 l_p=pinv(A_new)*y;
                                 x_rec_idx(sp_idx)=1;            %Storing the indices where sparse elements are present
                                 r=y-A_new*l_p;
-                                %                                 A(:,sp_idx)=[];
+                                min_run_flag=min_run_flag+1;
                                 maxrun=maxrun+1;
                             end
                             x_rec(max_index_array)=l_p;
