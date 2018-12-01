@@ -101,7 +101,7 @@ for n_sigma=n_sigma_set
                         else %Sparsity unknown case
                             maxrun=0;
                             max_index_array=[];
-                            while(max(abs(r)>norm(n))==1&& maxrun<=100 &&min_run_flag==0)
+                            while(max(abs(r)>norm(n))==1&& maxrun<=100 &&min_rec_flag==0)
                                 w=A'*r;
                                 [~,sp_idx]=max(abs(w));         %Taking absolute value of lambda
                                 max_index_array=[max_index_array sp_idx];
@@ -109,7 +109,7 @@ for n_sigma=n_sigma_set
                                 l_p=pinv(A_new)*y;
                                 x_rec_idx(sp_idx)=1;            %Storing the indices where sparse elements are present
                                 r=y-A_new*l_p;
-                                min_run_flag=min_run_flag+1;
+                                min_rec_flag=min_rec_flag+1;
                                 maxrun=maxrun+1;
                             end
                             x_rec(max_index_array)=l_p;
