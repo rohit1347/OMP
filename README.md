@@ -1,5 +1,6 @@
 # OMP
 <img src="mona200.jpg" height="300" width="1550" alt="Image Compression">
+
 Sparse signal recovery using **Orthogonal Matching Pursuit**.
 
 
