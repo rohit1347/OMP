@@ -1,82 +1,69 @@
-close all
 I = imread('MONALISA_color.jpg');
 I=rgb2gray(I);
 I=imresize(I,[340,340]);
-%i = 5;
 
-%image_block = image(10*i+1:10*(i+1),10*i+1:10*(i+1));
-%image_block = double(image_block);
-%imagesc(image_block);
-%colormap('gray')
-
-%image_block = reshape(image_block, [100,1]);
-
-
-% Compute DCT
+% Creating sparse matrix using DCT
 J = dct2(I);
 
-
-% Sparse DCT
-J(abs(J) < 50) = 0;
+% Sparsifying DCT
+J(abs(J) < 10) = 0;
 sparse_image = idct2(J);
-% figure
-% imshowpair(I,sparse_image,'montage')
-% title('Original Grayscale Image (Left) and Processed Image (Right)');
 
 recon_image  = zeros(340,340);
-J_var=10;
+sparse_image = J;
 
-%J is the sparsified matrix we have to reconstruct
-residue_limit=1e-12;
-for n_iter=1:10
-for dct_col=1:length(J)
-    for A_row=length(J)-J_var
-        A=randn(A_row,length(J));
-        A=normc(A);
-        x=J(:,dct_col);
-        r=A*x;
+A_row = 50;                 %Set M (number of rows here). M must be <=N
+M = A_row;
+    for dct_col = 1:length(sparse_image)
+        x = sparse_image(:,dct_col);
+        N = length(sparse_image);
         
-        A_new=[];
-        y=A*x;
-        x_rec_idx=zeros([A_row 1]);
-        x_rec=zeros(size(x));
-%         disp(sprintf('run= %d,Spars= %d , M= %d\n\n',run,support_length,M))
-        maxrun=0;
-        while(max(abs(r)>residue_limit)==1&& maxrun<=100)
-            w=A'*r;
-            [~,sp_idx]=max(abs(w));         %Taking absolute value of lambda
-            A_new=[A_new A(:,sp_idx)];
-            l_p=pinv(A_new)*y;
-            x_rec_idx(sp_idx)=1;            %Storing the indices where sparse elements are present
-            r=y-A_new*l_p;
-            maxrun=maxrun+1;
-        end
-        for j_iter=1:length(l_p)
-            flag=0;
-            for k_iter=1:length(x_rec_idx)
-                if x_rec_idx(k_iter)==1 && flag==0
-                    x_rec(k_iter)=l_p(j_iter);
-                    x_rec_idx(k_iter)=0;
-                    flag=flag+1;
-                end
+        % Random Dictionary
+        A = randn(M,N);
+        %Normalizing
+        A = normc(A);
+        y = A*x;
+        % Store the basis which contribute the most to sparse elements, to A_new
+        A_new = [];
+        
+        % r=residue
+        r  = y;
+        x_rec = zeros(N,1);
+        max_index_array = zeros(N,1);
+        for j=1:N
+            % Find column of A that has the maximum projection on y
+            w = A'*r;
+            [~,sp_idx] = max(abs(w));
+            x_rec(sp_idx,1) = 1;
+            max_index_array(j,1) = sp_idx;
+            % Add that column to A_basis
+            A_new = [A_new, A(:,sp_idx)];
+            l_p = pinv(A_new(:,1:j))*y;
+            %new_r=New reidue
+            new_r = y - A_new*l_p;
+            residue_limit = norm(new_r);
+            if j==N || residue_limit <= 1e-3
+                x_rec(max_index_array(1:j,1),1) = l_p;
+                recon_image(:,dct_col) = x_rec;
+                norm_error=norm(x-x_rec)/norm(x);
+                break;
             end
+            r = new_r;
         end
-        recon_image(:,dct_col)=x_rec/n_iter;
     end
-end
-end
-recon_image=idct2(recon_image);
+
+recon_image = idct2(recon_image);
 figure
 subplot(1,3,2)
 imagesc(recon_image)
 colormap('gray')
-title(['Recovered Image M/N= ',num2str((length(J)-J_var)/length(J))]);
+title(['Recovered Image M/N= ',num2str(A_row/length(J))]);
 subplot(1,3,3)
 % imshowpair(I,sparse_image,'montage')
 imagesc(I)
 colormap('gray')
 title('Original Image')
 subplot(1,3,1)
-imagesc(sparse_image)
+imagesc(idct2(sparse_image))
 colormap('gray')
 title('Sparsified Image (to recover)')
