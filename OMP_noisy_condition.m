@@ -7,7 +7,7 @@ clear all
 %-----------------
 %Control Variables pt1
 
-n_iter=200;
+n_iter=20;
 N_set=[20,50,100];
 num_fig=1;
 n_sigma_set=[1e-3,0.1];
